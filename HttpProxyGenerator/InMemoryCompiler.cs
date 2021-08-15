@@ -25,11 +25,12 @@ namespace HttpProxyGenerator
 
             using var ms = new MemoryStream();
             var result = compilation.Emit(ms);
+            
             ThrowExceptionIfCompilationFailure(result);
+            
             ms.Seek(0, SeekOrigin.Begin);
             
-            var assembly = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(ms);
-            return assembly;
+            return Assembly.Load(ms.ToArray());
         }
 
         private void ThrowExceptionIfCompilationFailure(EmitResult result)

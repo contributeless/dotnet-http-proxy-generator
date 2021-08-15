@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HttpProxyGenerator;
 using InterfacesLibrary;
 
 namespace ConsoleApp
@@ -12,7 +13,7 @@ namespace ConsoleApp
         {
             var client = new HttpClient {BaseAddress = new Uri("http://localhost:5000")};
 
-            var generator = new HttpProxyGenerator.HttpClientProxyGenerator();
+            var generator = new HttpClientProxyGenerator();
 
             var proxy = generator.CreateProxy<IDataFetcher>(client);
 
@@ -20,7 +21,7 @@ namespace ConsoleApp
             {
                 var sw = new Stopwatch();
                 sw.Start();
-                var result = await proxy.GetData("ufff", 123);
+                var result = await proxy.GetSimpleDataAsync("ufff", 123);
                 Console.WriteLine($"{result} - {sw.ElapsedMilliseconds}");
                 sw.Stop();
             }
