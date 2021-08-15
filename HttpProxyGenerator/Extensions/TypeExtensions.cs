@@ -25,7 +25,11 @@ namespace HttpProxyGenerator.Extensions
                 throw new ArgumentNullException(nameof(type));
             }
 
-            var baseInterfaces = type.GetInterfaces();
+            var baseInterfaces = type.GetInterfaces()
+                
+                //exclude system interfaces like IDisposable
+                .Where(x => !(x.FullName?.StartsWith("System") ?? false));
+
             return type.GetMethods()
                 .Concat(baseInterfaces.SelectMany(x => x.GetMethods()))
                 .ToArray();

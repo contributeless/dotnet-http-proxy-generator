@@ -21,6 +21,7 @@ namespace WebApp.Controllers
             throw new NotImplementedException();
         }
     }
+
     public class Data2Fetcher: IData2Fetcher
     {
         public Task<string> GetDataAsync(string test1, int test2)
@@ -28,27 +29,17 @@ namespace WebApp.Controllers
             return Task.FromResult("ok 2");
         }
     }
-    public class Data3Fetcher: IData3Fetcher
-    {
-        public Task<string> GetData(string test1, int test2)
-        {
-            return Task.FromResult("ok");
-        }
-    }
-    public class Data5Fetcher: IData5Fetcher
-    {
-        public Task<string> GetData(string test1, int test2)
-        {
-            return Task.FromResult("ok");
-        }
-    }
-
 
     public class Data7Fetcher: IData7Fetcher
     {
         public Task<string> GetData(string test1, int test2)
         {
             return Task.FromResult("ok");
+        }
+
+        public Task<OutData> GetData(InData test1, int test2)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<OutData> GetData2(string test1, int test2)
