@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -23,41 +22,37 @@ namespace HttpProxyGenerator
             _options = options;
         }
 
-        public (string, List<Assembly>) Generate()
+        public (SyntaxTree, List<Assembly>) Generate()
         {
             return GenerateControllers(_options.InterfacesToExpose);
         }
 
-        private (string, List<Assembly>) GenerateControllers(IList<Type> types)
+        private (SyntaxTree, List<Assembly>) GenerateControllers(IList<Type> types)
         {
-            var namespaceParts = new List<string>()
-            {
-                "Test",
-                "Controllers",
-                "CodeGen"
-            }.Where(x => !string.IsNullOrEmpty(x));
-            var nsName = string.Join(".", namespaceParts);
-
-            var ns = NamespaceDeclaration(ParseName(nsName))
-                .AddMembers(types.Select(x => CreateClass($"{x.Name}Controller", x.GetInterfaceMethods(), x)).ToArray());
             
-            var strWriter = new StringWriter();
+            var namespaceName = _options.NamingConventionProvider.GetGeneratedTypesNamespace();
 
-            ns.NormalizeWhitespace().WriteTo(strWriter);
-            return (strWriter.ToString(), types.Select(x => x.Assembly).Distinct().ToList());
+            var compilationUnit = CompilationUnit()
+                .AddMembers(NamespaceDeclaration(ParseName(namespaceName))
+                .AddMembers(types.Select(CreateControllerClass).ToArray()));
+            
+            return (compilationUnit.NormalizeWhitespace().SyntaxTree, types.Select(x => x.Assembly).Distinct().ToList());
         }
 
-        private MemberDeclarationSyntax CreateClass(string name, MethodInfo[] methods, Type targetInterface)
+        private MemberDeclarationSyntax CreateControllerClass(Type targetInterface)
         {
+            var name = _options.NamingConventionProvider.GetGeneratedControllerName(targetInterface);
+            var methods = _options.ProxyContractProvider.GetMethodsToExpose(targetInterface).ToArray();
+
             return ClassDeclaration(Identifier(name))
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
-                .AddBaseListTypes(SimpleBaseType(typeof(ControllerBase).AsTypeSyntax()))
-                .AddAttributeLists(AttributeList(SeparatedList<AttributeSyntax>().Add(
-                    Attribute(ParseName(typeof(ApiControllerAttribute).FullName)))
+                .AddBaseListTypes(SimpleBaseType(_options.ProxyContractProvider.GetBaseControllerType(targetInterface).AsTypeSyntax()))
+                .AddAttributeLists(AttributeList(SeparatedList<AttributeSyntax>()
+                    .Add(GenerateAttribute<ApiControllerAttribute>())
                     .Add(GenerateRouteAttribute(name))))
                 .AddMembers(CreateServiceField(targetInterface))
-                .AddMembers(CreateControllerConstructor(name, targetInterface))
-                .AddMembers(methods.Select(CreateMethod).ToArray())
+                .AddMembers(CreateControllerConstructor(targetInterface))
+                .AddMembers(methods.Select(x => CreateApiEndpointMethod(x, targetInterface)).ToArray())
                 .AddMembers(methods.Select(CreateParameterClassWrapper).Where(x => x != null).ToArray())
                 ;
         }
@@ -67,42 +62,49 @@ namespace HttpProxyGenerator
             return FieldDeclaration(default,
                 new SyntaxTokenList(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.ReadOnlyKeyword)),
                 VariableDeclaration(targetInterface.AsTypeSyntax(),
-                    SeparatedList(
-                        new List<VariableDeclaratorSyntax>()
-                        {
-                            VariableDeclarator(ParseToken("_service"))
-                        }))
+                    SeparatedList(new List<VariableDeclaratorSyntax>
+                    {
+                        VariableDeclarator(
+                            ParseToken(_options.NamingConventionProvider.GetServiceFieldName(targetInterface)))
+                    }))
             );
         }
-        private MemberDeclarationSyntax CreateControllerConstructor(string name, Type targetInterface)
+        private MemberDeclarationSyntax CreateControllerConstructor(Type targetInterface)
         {
+            var name = _options.NamingConventionProvider.GetGeneratedControllerName(targetInterface);
+
+            var serviceParameterName = _options.NamingConventionProvider.GetServiceConstructorParameterName(targetInterface);
+
             return ConstructorDeclaration(default,
                 new SyntaxTokenList(Token(SyntaxKind.PublicKeyword)),
                 ParseToken(name),
-                ParameterList(SeparatedList<ParameterSyntax>(new List<ParameterSyntax>()
+                ParameterList(SeparatedList(new List<ParameterSyntax>()
                 {
-                    Parameter(default, default, targetInterface.AsTypeSyntax(), ParseToken("service"), default)
+                    Parameter(default, default, targetInterface.AsTypeSyntax(), ParseToken(serviceParameterName), default)
                 })),
-                default,
+                default, 
                 Block(new List<StatementSyntax>()
                 {
                     ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
                         MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             IdentifierName("this"),
-                            IdentifierName("_service")
+                            IdentifierName(_options.NamingConventionProvider.GetServiceFieldName(targetInterface))
                         ).WithOperatorToken(Token(SyntaxKind.DotToken)),
-                        IdentifierName("service")
-                        ))
+                        IdentifierName(serviceParameterName)
+                    ))
                 })
             );
         }
 
-        private MemberDeclarationSyntax CreateMethod(MethodInfo method)
+        private MemberDeclarationSyntax CreateApiEndpointMethod(MethodInfo method, Type interfaceType)
         {
+            const string resultVariableName = "result";
+            string modelParameterName = _options.NamingConventionProvider.GetApiMethodModelParameterName(method);
+
             var attributeList = new SyntaxList<AttributeListSyntax>(AttributeList(SeparatedList<AttributeSyntax>()
-                .Add(Attribute(ParseName(typeof(HttpPostAttribute).FullName)))
-                .Add(GenerateProducesResponseTypeAttribute(method.Name, method.ReturnType))
+                .Add(GenerateAttribute<HttpPostAttribute>())
+                .Add(GenerateProducesResponseTypeAttribute(method.ReturnType))
                 .Add(GenerateRouteAttribute(method.Name))
             ));
 
@@ -117,12 +119,12 @@ namespace HttpProxyGenerator
             ExpressionSyntax serviceInvocation = AwaitExpression(InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("_service"),
+                    IdentifierName(_options.NamingConventionProvider.GetServiceFieldName(interfaceType)),
                     IdentifierName(method.Name)
                 ).WithOperatorToken(Token(SyntaxKind.DotToken)),
-                ArgumentList(SeparatedList<ArgumentSyntax>(parameters.Select(x => Argument(MemberAccessExpression(
+                ArgumentList(SeparatedList(parameters.Select(x => Argument(MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    IdentifierName("model"),
+                    IdentifierName(modelParameterName),
                     IdentifierName(x.Name)
                 ).WithOperatorToken(Token(SyntaxKind.DotToken))))))
             ));
@@ -132,9 +134,9 @@ namespace HttpProxyGenerator
                 bodyStatements.Add(LocalDeclarationStatement(
                     VariableDeclaration(method.ReturnType.GetGenericArguments().Single().AsTypeSyntax())
                         .WithVariables(
-                            SingletonSeparatedList<VariableDeclaratorSyntax>(
+                            SingletonSeparatedList(
                                 VariableDeclarator(
-                                        Identifier("result"))
+                                        Identifier(resultVariableName))
                                     .WithInitializer(
                                         EqualsValueClause(
                                             serviceInvocation
@@ -155,9 +157,9 @@ namespace HttpProxyGenerator
                 default,
                 ParseToken(method.Name),
                 default,
-                ParameterList(SeparatedList<ParameterSyntax>(new List<ParameterSyntax>()
+                ParameterList(SeparatedList(new List<ParameterSyntax>()
                 {
-                    Parameter(default, default, ParseTypeName($"{method.Name}ParameterModel"), ParseToken("model"), default)
+                    Parameter(default, default, ParseTypeName(_options.NamingConventionProvider.GetParameterModelTypeName(method)), ParseToken(modelParameterName), default)
                 })),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
                 Block(bodyStatements.Concat(new List<StatementSyntax>()
@@ -167,9 +169,9 @@ namespace HttpProxyGenerator
                             IdentifierName("this"),
                             IdentifierName(nameof(ControllerBase.Ok))
                         ).WithOperatorToken(Token(SyntaxKind.DotToken)),
-                        ArgumentList(method.ReturnType.IsGenericType ? SeparatedList<ArgumentSyntax>(new List<ArgumentSyntax>()
+                        ArgumentList(method.ReturnType.IsGenericType ? SeparatedList(new List<ArgumentSyntax>()
                         {
-                            Argument(IdentifierName("result"))
+                            Argument(IdentifierName(resultVariableName))
                         }) : default)
                     ))
                 })),
@@ -184,7 +186,7 @@ namespace HttpProxyGenerator
                 return null;
             }
 
-            return ClassDeclaration(Identifier($"{method.Name}ParameterModel"))
+            return ClassDeclaration(Identifier(_options.NamingConventionProvider.GetParameterModelTypeName(method)))
                     .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .AddMembers(methodParameters.Select(CreatePropertyByParameter).ToArray())
                 ;
@@ -195,7 +197,7 @@ namespace HttpProxyGenerator
             return PropertyDeclaration(new SyntaxList<AttributeListSyntax>(),
                 SyntaxTokenList.Create(Token(SyntaxKind.PublicKeyword)),
                 parameter.ParameterType.AsTypeSyntax(),
-                explicitInterfaceSpecifier: null, 
+                explicitInterfaceSpecifier: default, 
                 Identifier(parameter.Name), 
                 AccessorList(new SyntaxList<AccessorDeclarationSyntax>(new[] {
                     AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
@@ -203,42 +205,40 @@ namespace HttpProxyGenerator
                 })));
         }
 
-        private AttributeSyntax GenerateProducesResponseTypeAttribute(string methodName, Type returnType)
+        private AttributeSyntax GenerateProducesResponseTypeAttribute(Type returnType)
         {
-            var attributeName = ParseName(typeof(ProducesResponseTypeAttribute).FullName);
+            var parameters = new List<ExpressionSyntax>();
 
-            if (!typeof(Task).IsAssignableFrom(returnType))
-            {
-                throw new ArgumentException($"Return type of the {methodName} method should be {nameof(Task)} or {nameof(Task)}<TType>");
-            }
-
-
-            var attributeParametersList = SeparatedList<AttributeArgumentSyntax>();
-
+            //Type<TResult>
             if (returnType.IsGenericType)
             {
                 var genericTypeArgument = returnType.GetGenericArguments().Single();
-
-                attributeParametersList = attributeParametersList.Add(AttributeArgument(TypeOfExpression(genericTypeArgument.AsTypeSyntax())));
+                parameters.Add(TypeOfExpression(genericTypeArgument.AsTypeSyntax()));
             }
 
-            attributeParametersList = attributeParametersList.Add(AttributeArgument(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal((int)HttpStatusCode.OK))));
+            parameters.Add(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal((int)HttpStatusCode.OK)));
 
-
-            return Attribute(attributeName, AttributeArgumentList(attributeParametersList));
+            return GenerateAttribute<ProducesResponseTypeAttribute>(parameters.ToArray());
         }
 
         private AttributeSyntax GenerateRouteAttribute(string routeValue)
         {
-            var attributeName = ParseName(typeof(RouteAttribute).FullName);
-            
+            return GenerateAttribute<RouteAttribute>(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(routeValue)));
+        }
+
+        private AttributeSyntax GenerateAttribute<TAttribute>(params ExpressionSyntax[] parameters)
+        {
+            var attributeName = ParseName(typeof(TAttribute).GetFullTypeName());
+
             var attributeParametersList = SeparatedList<AttributeArgumentSyntax>();
-            
 
-            attributeParametersList = attributeParametersList.Add(AttributeArgument(LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(routeValue))));
-
+            foreach (var expressionSyntax in parameters)
+            {
+                attributeParametersList = attributeParametersList.Add(AttributeArgument(expressionSyntax));
+            }
 
             return Attribute(attributeName, AttributeArgumentList(attributeParametersList));
         }
+
     }
 }

@@ -12,7 +12,7 @@ namespace ConsoleApp
         {
             var client = new HttpClient {BaseAddress = new Uri("http://localhost:5000")};
 
-            var generator = new HttpProxyGenerator.HttpProxyGenerator();
+            var generator = new HttpProxyGenerator.HttpClientProxyGenerator();
 
             var proxy = generator.CreateProxy<IDataFetcher>(client);
 

@@ -11,8 +11,23 @@ namespace HttpProxyGenerator.Extensions
 {
     internal static class TypeExtensions
     {
+        public static string GetFullTypeName(this Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return type.FullName ?? type.Name;
+        }
+
         public static MethodInfo[] GetInterfaceMethods(this Type type)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return type.GetMethods();
         }
 

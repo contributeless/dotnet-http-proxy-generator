@@ -12,14 +12,10 @@ namespace HttpProxyGenerator
 {
     public class InMemoryCompiler
     {
-        public Assembly CompileCSharpCode(string code, List<Assembly> assemblies)
+        public Assembly CompileCSharpCode(SyntaxTree syntaxTree, List<Assembly> assemblies)
         {
             var sw = new Stopwatch();
             sw.Start();
-
-            var syntaxTree = CSharpSyntaxTree.ParseText(code);
-
-            Console.WriteLine($"--Code parsed in {sw.ElapsedMilliseconds}");
 
             string assemblyName = Guid.NewGuid().ToString();
             var references = GetAssemblyReferences(assemblies);
@@ -71,11 +67,13 @@ namespace HttpProxyGenerator
         {
             var coreDir = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
             return Assembly.GetExecutingAssembly().GetReferencedAssemblies()
-                .Select(x => Assembly.Load(x))
-                .Concat(new List<Assembly>(){ typeof(System.Object).Assembly, Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly() })
+                .Select(Assembly.Load)
+                .Concat(new List<Assembly>(){ typeof(System.Object).Assembly, typeof(System.Threading.Tasks.Task).Assembly, Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly() })
                 .Concat(assemblies)
                 .Select(x => MetadataReference.CreateFromFile(x.Location))
+                .Concat(new List<PortableExecutableReference>(){ MetadataReference.CreateFromFile(Path.Combine(coreDir, "mscorlib.dll")) })
                 .Concat(new List<PortableExecutableReference>(){ MetadataReference.CreateFromFile(Path.Combine(coreDir, "System.Runtime.dll")) })
+                .Reverse()
                 ;
         }
     }

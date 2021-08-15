@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace HttpProxyGenerator
 {
-    public class HttpProxyGenerator
+    public class HttpClientProxyGenerator
     {
         private static readonly ProxyGenerator Generator = new ProxyGenerator();
 
