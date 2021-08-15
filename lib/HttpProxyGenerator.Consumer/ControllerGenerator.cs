@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace HttpProxyGenerator.Consumer
 {
-    public class ControllerGenerator
+    internal class ControllerGenerator
     {
         private readonly ControllerGeneratorOptions _options;
 

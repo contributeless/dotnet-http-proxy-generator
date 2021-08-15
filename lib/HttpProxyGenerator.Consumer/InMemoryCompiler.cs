@@ -9,11 +9,10 @@ using Microsoft.CodeAnalysis.Emit;
 
 namespace HttpProxyGenerator.Consumer
 {
-    public class InMemoryCompiler
+    internal class InMemoryCompiler
     {
         public Assembly CompileCSharpCode(SyntaxTree syntaxTree, IEnumerable<Assembly> assemblies)
         {
-            var str = syntaxTree.ToString();
             string assemblyName = Guid.NewGuid().ToString();
             var references = GetAssemblyReferences(assemblies);
 
@@ -57,12 +56,10 @@ namespace HttpProxyGenerator.Consumer
             var coreDir = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
             return Assembly.GetExecutingAssembly().GetReferencedAssemblies()
                 .Select(Assembly.Load)
-                .Concat(new List<Assembly>(){ typeof(System.Object).Assembly })
+                .Concat(new List<Assembly>(){ typeof(object).Assembly })
                 .Concat(assemblies)
                 .Select(x => MetadataReference.CreateFromFile(x.Location))
-                .Concat(new List<PortableExecutableReference>(){ MetadataReference.CreateFromFile(Path.Combine(coreDir, "mscorlib.dll")) })
                 .Concat(new List<PortableExecutableReference>(){ MetadataReference.CreateFromFile(Path.Combine(coreDir, "System.Runtime.dll")) })
-                .Reverse()
                 ;
         }
     }
