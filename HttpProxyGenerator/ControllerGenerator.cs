@@ -116,6 +116,11 @@ namespace HttpProxyGenerator
 
             var parameters = method.GetParameters();
 
+            var endpointParameter = parameters.Any() 
+                ? Parameter(default, default, ParseTypeName(_options.NamingConventionProvider.GetParameterModelTypeName(interfaceType, method)), ParseToken(modelParameterName), default)
+                : null;
+
+
             var bodyStatements = new List<StatementSyntax>();
 
             ExpressionSyntax serviceInvocation = AwaitExpression(InvocationExpression(
@@ -159,10 +164,9 @@ namespace HttpProxyGenerator
                 default,
                 ParseToken(method.Name),
                 default,
-                ParameterList(SeparatedList(new List<ParameterSyntax>()
-                {
-                    Parameter(default, default, ParseTypeName(_options.NamingConventionProvider.GetParameterModelTypeName(interfaceType, method)), ParseToken(modelParameterName), default)
-                })),
+                ParameterList(SeparatedList(endpointParameter != null
+                    ? new List<ParameterSyntax>() {endpointParameter}
+                    : (IEnumerable<ParameterSyntax>) Array.Empty<ParameterSyntax>())),
                 new SyntaxList<TypeParameterConstraintClauseSyntax>(),
                 Block(bodyStatements.Concat(new List<StatementSyntax>()
                 {
