@@ -31,7 +31,7 @@ Usage example:
 3. Create a proxy in the Client app
 
 ```csharp
-            var client = new HttpClient {BaseAddress = new Uri("http://localhost:5000")};
+            var client = new HttpClient {BaseAddress = new Uri("http://consumer_app_base_uri")};
 
             var generator = new HttpClientProxyGenerator();
 
