@@ -34,7 +34,8 @@ namespace HttpProxyGenerator.Common.Abstractions
 
             foreach (var overloadedMethodGroup in overloadedMethodGroups)
             {
-                var overloadedMethods = overloadedMethodGroup.ToArray();
+                var overloadedMethods = overloadedMethodGroup.OrderBy(GetMethodUniqueKey).ToArray();
+
                 for (var i = 0; i < overloadedMethods.Length; i++)
                 {
                     var method = overloadedMethods[i];
@@ -69,7 +70,7 @@ namespace HttpProxyGenerator.Common.Abstractions
             return trimmedInterfaceName;
         }
 
-        protected virtual string GetInterfaceNameWithoutLeadingI(string interfaceName)
+        private string GetInterfaceNameWithoutLeadingI(string interfaceName)
         {
             // do not transform names IE, EG, etc. names
             if (interfaceName.Length < 2)
@@ -89,6 +90,13 @@ namespace HttpProxyGenerator.Common.Abstractions
             }
 
             return interfaceName;
+        }
+
+        private string GetMethodUniqueKey(MethodInfo methodInfo)
+        {
+            var parametersKeys = methodInfo.GetParameters().Select(x => $"{x.Name}{x.ParameterType.FullName}");
+
+            return $"{methodInfo.Name}#{string.Join("#", parametersKeys)}";
         }
     }
 }
