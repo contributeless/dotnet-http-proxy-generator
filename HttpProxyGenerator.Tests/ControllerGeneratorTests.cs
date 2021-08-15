@@ -19,9 +19,9 @@ namespace HttpProxyGenerator.Tests
 
             var (result, assemblies) = generator.Generate();
             Console.WriteLine(result);
-
+            
             var compiler = new InMemoryCompiler();
-
+            
             var assembly = compiler.CompileCSharpCode(result, assemblies);
             var types = assembly.GetExportedTypes().Select(x => x.FullName);
             Console.WriteLine(string.Join(',', types));

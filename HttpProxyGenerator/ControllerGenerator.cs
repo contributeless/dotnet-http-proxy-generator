@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Newtonsoft.Json;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace HttpProxyGenerator
@@ -29,14 +31,15 @@ namespace HttpProxyGenerator
 
         private (SyntaxTree, List<Assembly>) GenerateControllers(IList<Type> types)
         {
-            
             var namespaceName = _options.NamingConventionProvider.GetGeneratedTypesNamespace();
 
+            var ns = NamespaceDeclaration(ParseName(namespaceName))
+                .AddMembers(types.Select(CreateControllerClass).ToArray());
+
             var compilationUnit = CompilationUnit()
-                .AddMembers(NamespaceDeclaration(ParseName(namespaceName))
-                .AddMembers(types.Select(CreateControllerClass).ToArray()));
-            
-            return (compilationUnit.NormalizeWhitespace().SyntaxTree, types.Select(x => x.Assembly).Distinct().ToList());
+                    .AddMembers(ns).NormalizeWhitespace().SyntaxTree;
+
+            return (compilationUnit, types.Select(x => x.Assembly).Distinct().ToList());
         }
 
         private MemberDeclarationSyntax CreateControllerClass(Type targetInterface)
@@ -88,7 +91,7 @@ namespace HttpProxyGenerator
                     ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
                         MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName("this"),
+                            ThisExpression(),
                             IdentifierName(_options.NamingConventionProvider.GetServiceFieldName(targetInterface))
                         ).WithOperatorToken(Token(SyntaxKind.DotToken)),
                         IdentifierName(serviceParameterName)
@@ -166,7 +169,7 @@ namespace HttpProxyGenerator
                 {
                     ReturnStatement(InvocationExpression(MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName("this"),
+                            ThisExpression(),
                             IdentifierName(nameof(ControllerBase.Ok))
                         ).WithOperatorToken(Token(SyntaxKind.DotToken)),
                         ArgumentList(method.ReturnType.IsGenericType ? SeparatedList(new List<ArgumentSyntax>()
