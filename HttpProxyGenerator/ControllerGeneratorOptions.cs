@@ -14,7 +14,7 @@ namespace HttpProxyGenerator
         {
             InterfacesToExpose = new List<Type>();
             NamingConventionProvider = new DefaultProxyNamingConventionProvider();
-            ProxyContractProvider = new ProxyContractProvider();
+            ProxyContractProvider = new DefaultProxyContractProvider();
         }
 
         public void RegisterInterfaceToExpose<TInterface>()

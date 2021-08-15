@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
 namespace HttpProxyGenerator.Tests
@@ -22,7 +23,7 @@ namespace HttpProxyGenerator.Tests
             Console.WriteLine(result);
             
             var compiler = new InMemoryCompiler();
-            
+
             var assembly = compiler.CompileCSharpCode(result, new List<Assembly>());
             var types = assembly.GetExportedTypes().Select(x => x.FullName);
             Console.WriteLine(string.Join(',', types));

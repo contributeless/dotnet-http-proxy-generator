@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using HttpProxyGenerator.Extensions;
 
 namespace HttpProxyGenerator.Abstractions
@@ -20,8 +18,8 @@ namespace HttpProxyGenerator.Abstractions
             {
                 throw new ArgumentNullException(nameof(interfaceType));
             }
-
-            return $"{interfaceType.Name}Controller";
+            var name = GetInterfaceNameWithoutLeadingI(interfaceType.Name);
+            return $"{name}Controller";
         }
 
         public string GetServiceFieldName(Type interfaceType)
@@ -39,19 +37,53 @@ namespace HttpProxyGenerator.Abstractions
             return "model";
         }
 
-        public string GetParameterModelTypeName(MethodInfo method)
+        public string GetParameterModelTypeName(Type interfaceType, MethodInfo method)
         {
-            return $"{method.Name}ParameterModel";
+            return $"{GetInterfaceNameWithoutLeadingI(interfaceType.Name)}{GetApiEndpointWithoutAsyncPostfix(method.Name)}ParameterModel";
         }
 
         public string GetControllerRoute(Type targetInterface)
         {
-            return targetInterface.Name.ToKebabCase();
+            var name = GetInterfaceNameWithoutLeadingI(targetInterface.Name);
+            return $"api/{name.ToKebabCase()}";
         }
 
         public string GetEndpointRoute(MethodInfo method)
         {
-            return method.Name.ToKebabCase();
+            return GetApiEndpointWithoutAsyncPostfix(method.Name).ToKebabCase();
+        }
+
+        private string GetApiEndpointWithoutAsyncPostfix(string methodName)
+        {
+            const string asyncPostfix = "Async";
+            if (methodName.EndsWith(asyncPostfix))
+            {
+                return methodName[..^asyncPostfix.Length];
+            }
+
+            return methodName;
+        }
+
+        private string GetInterfaceNameWithoutLeadingI(string interfaceName)
+        {
+            // do not transform names IE, EG, etc. names
+            if (interfaceName.Length < 2)
+            {
+                return interfaceName;
+            }
+
+            // second letter should be upper-cased
+            if (!char.IsUpper(interfaceName[1]))
+            {
+                return interfaceName;
+            }
+
+            if (interfaceName.First().Equals('I'))
+            {
+                return interfaceName[1..interfaceName.Length];
+            }
+
+            return interfaceName;
         }
     }
 }

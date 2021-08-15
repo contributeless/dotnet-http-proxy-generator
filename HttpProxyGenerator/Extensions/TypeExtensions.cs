@@ -25,7 +25,10 @@ namespace HttpProxyGenerator.Extensions
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return type.GetMethods();
+            var baseInterfaces = type.GetInterfaces();
+            return type.GetMethods()
+                .Concat(baseInterfaces.SelectMany(x => x.GetMethods()))
+                .ToArray();
         }
 
         public static TypeSyntax AsTypeSyntax(this Type type)

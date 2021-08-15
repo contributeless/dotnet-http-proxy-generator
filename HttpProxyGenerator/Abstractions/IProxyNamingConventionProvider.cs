@@ -18,7 +18,7 @@ namespace HttpProxyGenerator.Abstractions
 
         string GetApiMethodModelParameterName(MethodInfo method);
 
-        string GetParameterModelTypeName(MethodInfo method);
+        string GetParameterModelTypeName(Type interfaceType, MethodInfo method);
 
         string GetControllerRoute(Type targetInterface);
 

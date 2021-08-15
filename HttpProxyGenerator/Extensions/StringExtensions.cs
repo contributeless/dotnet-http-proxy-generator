@@ -6,6 +6,7 @@ namespace HttpProxyGenerator.Extensions
     {
         public static string ToKebabCase(this string source)
         {
+            // Implemented according to https://docs.microsoft.com/en-us/dotnet/standard/design-guidelines/capitalization-conventions
             if (source is null)
             {
                 return null;
@@ -22,33 +23,46 @@ namespace HttpProxyGenerator.Extensions
 
             for (var i = 0; i < source.Length; i++)
             {
-                if (char.IsLower(source[i])) // if current char is already lowercase
+                // if current char is already lowercase
+                if (char.IsLower(source[i]))
                 {
                     builder.Append(source[i]);
                 }
-                else if (i == 0) // if current char is the first char
+
+                // if current char is the first char
+                else if (i == 0) 
                 {
                     builder.Append(char.ToLower(source[i]));
                 }
-                else if (char.IsDigit(source[i]) && !char.IsDigit(source[i - 1])) // if current char is a number and the previous is not
+
+                // if current char is a number and the previous is not
+                else if (char.IsDigit(source[i]) && !char.IsDigit(source[i - 1]))
                 {
                     builder.Append(hyphen);
                     builder.Append(source[i]);
                 }
-                else if (char.IsDigit(source[i])) // if current char is a number and previous is
+
+                // if current char is a number and previous is
+                else if (char.IsDigit(source[i]))
                 {
                     builder.Append(source[i]);
                 }
-                else if (char.IsLower(source[i - 1])) // if current char is upper and previous char is lower
+
+                // if current char is upper and previous char is lower
+                else if (char.IsLower(source[i - 1])) 
                 {
                     builder.Append(hyphen);
                     builder.Append(char.ToLower(source[i]));
                 }
-                else if (i + 1 == source.Length || char.IsUpper(source[i + 1])) // if current char is upper and next char doesn't exist or is upper
+
+                // if current char is upper and next char doesn't exist or is upper
+                else if (i + 1 == source.Length || char.IsUpper(source[i + 1])) 
                 {
                     builder.Append(char.ToLower(source[i]));
                 }
-                else // if current char is upper and next char is lower
+
+                // if current char is upper and next char is lower
+                else
                 {
                     builder.Append(hyphen);
                     builder.Append(char.ToLower(source[i]));

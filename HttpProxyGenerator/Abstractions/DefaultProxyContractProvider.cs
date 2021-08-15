@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using HttpProxyGenerator.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HttpProxyGenerator.Abstractions
 {
-    public class ProxyContractProvider : IProxyContractProvider
+    public class DefaultProxyContractProvider : IProxyContractProvider
     {
         public IEnumerable<MethodInfo> GetMethodsToExpose(Type interfaceType)
         {

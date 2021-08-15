@@ -28,9 +28,13 @@ namespace WebApp
                 .RegisterHttpProxyEndpoints(options =>
                 {
                     options.RegisterInterfaceToExpose<IDataFetcher>();
+                    options.RegisterInterfaceToExpose<IData2Fetcher>();
+                    options.RegisterInterfaceToExpose<IData7Fetcher>();
                 });
 
             services.AddSingleton<IDataFetcher, DataFetcher>();
+            services.AddSingleton<IData2Fetcher, Data2Fetcher>();
+            services.AddSingleton<IData7Fetcher, Data7Fetcher>();
 
             services.AddSwaggerGen(c =>
             {

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using InterfacesLibrary;
 
 namespace WebApp.Controllers
@@ -7,14 +8,24 @@ namespace WebApp.Controllers
     {
         public Task<string> GetData(string test1, int test2)
         {
-            return Task.FromResult("ok");
+            return Task.FromResult("ok 1");
+        }
+
+        public Task<string> GetBaseData(string test1, int test2)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetSuperBaseData(string test1, int test2)
+        {
+            throw new NotImplementedException();
         }
     }
     public class Data2Fetcher: IData2Fetcher
     {
-        public Task<string> GetData(string test1, int test2)
+        public Task<string> GetDataAsync(string test1, int test2)
         {
-            return Task.FromResult("ok");
+            return Task.FromResult("ok 2");
         }
     }
     public class Data3Fetcher: IData3Fetcher
@@ -31,6 +42,8 @@ namespace WebApp.Controllers
             return Task.FromResult("ok");
         }
     }
+
+
     public class Data7Fetcher: IData7Fetcher
     {
         public Task<string> GetData(string test1, int test2)
@@ -38,9 +51,14 @@ namespace WebApp.Controllers
             return Task.FromResult("ok");
         }
 
-        public Task<string> GetData2(string test1, int test2)
+        public Task<OutData> GetData2(string test1, int test2)
         {
             throw new System.NotImplementedException();
+        }
+
+        public Task<string> GetDat5(InData test1, int test2)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<string> GetDat5(string test1, int test2)

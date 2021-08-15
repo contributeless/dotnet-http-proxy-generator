@@ -14,13 +14,8 @@ namespace HttpProxyGenerator
     {
         public Assembly CompileCSharpCode(SyntaxTree syntaxTree, IEnumerable<Assembly> assemblies)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-
             string assemblyName = Guid.NewGuid().ToString();
             var references = GetAssemblyReferences(assemblies);
-
-            Console.WriteLine($"--References found in {sw.ElapsedMilliseconds}");
 
             var compilation = CSharpCompilation.Create(
                 assemblyName,
@@ -28,19 +23,12 @@ namespace HttpProxyGenerator
                 references,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            Console.WriteLine($"--Compilation validated in {sw.ElapsedMilliseconds}");
-
             using var ms = new MemoryStream();
             var result = compilation.Emit(ms);
             ThrowExceptionIfCompilationFailure(result);
             ms.Seek(0, SeekOrigin.Begin);
-
-            Console.WriteLine($"--Compiled in {sw.ElapsedMilliseconds}");
+            
             var assembly = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(ms);
-
-            Console.WriteLine($"--Loaded in {sw.ElapsedMilliseconds}");
-
-            sw.Stop();
             return assembly;
         }
 
@@ -68,7 +56,7 @@ namespace HttpProxyGenerator
             var coreDir = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
             return Assembly.GetExecutingAssembly().GetReferencedAssemblies()
                 .Select(Assembly.Load)
-                .Concat(new List<Assembly>(){ typeof(System.Object).Assembly, typeof(System.Threading.Tasks.Task).Assembly, Assembly.GetEntryAssembly(), Assembly.GetCallingAssembly() })
+                .Concat(new List<Assembly>(){ typeof(System.Object).Assembly })
                 .Concat(assemblies)
                 .Select(x => MetadataReference.CreateFromFile(x.Location))
                 .Concat(new List<PortableExecutableReference>(){ MetadataReference.CreateFromFile(Path.Combine(coreDir, "mscorlib.dll")) })
