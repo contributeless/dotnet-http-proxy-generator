@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Newtonsoft.Json;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace HttpProxyGenerator
@@ -24,35 +22,36 @@ namespace HttpProxyGenerator
             _options = options;
         }
 
-        public (SyntaxTree, List<Assembly>) Generate()
+        public SyntaxTree Generate()
         {
-            return GenerateControllers(_options.InterfacesToExpose);
+            var namespaces = _options.InterfacesToExpose.Select(x =>
+                    (namespaceName: _options.NamingConventionProvider.GetControllerNamespace(x), type: x))
+                .GroupBy(x => x.namespaceName, x => x.type)
+                .Select(x => GenerateNamespace(x.Key, x))
+                .ToArray();
+
+            return CompilationUnit()
+                .AddMembers(namespaces)
+                .NormalizeWhitespace()
+                .SyntaxTree;
         }
 
-        private (SyntaxTree, List<Assembly>) GenerateControllers(IList<Type> types)
+        private MemberDeclarationSyntax GenerateNamespace(string namespaceName, IEnumerable<Type> types)
         {
-            var namespaceName = _options.NamingConventionProvider.GetGeneratedTypesNamespace();
-
-            var ns = NamespaceDeclaration(ParseName(namespaceName))
+            return NamespaceDeclaration(ParseName(namespaceName))
                 .AddMembers(types.Select(CreateControllerClass).ToArray());
-
-            var compilationUnit = CompilationUnit()
-                    .AddMembers(ns).NormalizeWhitespace().SyntaxTree;
-
-            return (compilationUnit, types.Select(x => x.Assembly).Distinct().ToList());
         }
 
         private MemberDeclarationSyntax CreateControllerClass(Type targetInterface)
         {
-            var name = _options.NamingConventionProvider.GetGeneratedControllerName(targetInterface);
             var methods = _options.ProxyContractProvider.GetMethodsToExpose(targetInterface).ToArray();
 
-            return ClassDeclaration(Identifier(name))
+            return ClassDeclaration(Identifier(_options.NamingConventionProvider.GetGeneratedControllerName(targetInterface)))
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
                 .AddBaseListTypes(SimpleBaseType(_options.ProxyContractProvider.GetBaseControllerType(targetInterface).AsTypeSyntax()))
                 .AddAttributeLists(AttributeList(SeparatedList<AttributeSyntax>()
                     .Add(GenerateAttribute<ApiControllerAttribute>())
-                    .Add(GenerateRouteAttribute(name))))
+                    .Add(GenerateRouteAttribute(_options.NamingConventionProvider.GetControllerRoute(targetInterface)))))
                 .AddMembers(CreateServiceField(targetInterface))
                 .AddMembers(CreateControllerConstructor(targetInterface))
                 .AddMembers(methods.Select(x => CreateApiEndpointMethod(x, targetInterface)).ToArray())
@@ -181,6 +180,8 @@ namespace HttpProxyGenerator
                 null);
         }
 
+        #region DataClassesGeneration
+
         private MemberDeclarationSyntax CreateParameterClassWrapper(MethodInfo method)
         {
             var methodParameters = method.GetParameters();
@@ -200,13 +201,17 @@ namespace HttpProxyGenerator
             return PropertyDeclaration(new SyntaxList<AttributeListSyntax>(),
                 SyntaxTokenList.Create(Token(SyntaxKind.PublicKeyword)),
                 parameter.ParameterType.AsTypeSyntax(),
-                explicitInterfaceSpecifier: default, 
-                Identifier(parameter.Name), 
+                explicitInterfaceSpecifier: default,
+                Identifier(parameter.Name),
                 AccessorList(new SyntaxList<AccessorDeclarationSyntax>(new[] {
                     AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken)),
                     AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
                 })));
         }
+
+        #endregion
+
+        #region AttributesGeneration
 
         private AttributeSyntax GenerateProducesResponseTypeAttribute(Type returnType)
         {
@@ -242,6 +247,8 @@ namespace HttpProxyGenerator
 
             return Attribute(attributeName, AttributeArgumentList(attributeParametersList));
         }
+
+        #endregion
 
     }
 }

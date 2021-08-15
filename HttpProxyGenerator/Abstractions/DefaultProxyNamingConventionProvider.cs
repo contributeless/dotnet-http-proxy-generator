@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using HttpProxyGenerator.Extensions;
 
 namespace HttpProxyGenerator.Abstractions
 {
     public class DefaultProxyNamingConventionProvider: IProxyNamingConventionProvider
     {
-        public string GetGeneratedTypesNamespace()
+        public string GetControllerNamespace(Type interfaceType)
         {
             return "Test.Controllers.CodeGen";
         }
@@ -41,6 +42,16 @@ namespace HttpProxyGenerator.Abstractions
         public string GetParameterModelTypeName(MethodInfo method)
         {
             return $"{method.Name}ParameterModel";
+        }
+
+        public string GetControllerRoute(Type targetInterface)
+        {
+            return targetInterface.Name.ToKebabCase();
+        }
+
+        public string GetEndpointRoute(MethodInfo method)
+        {
+            return method.Name.ToKebabCase();
         }
     }
 }

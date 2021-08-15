@@ -12,7 +12,7 @@ namespace HttpProxyGenerator
 {
     public class InMemoryCompiler
     {
-        public Assembly CompileCSharpCode(SyntaxTree syntaxTree, List<Assembly> assemblies)
+        public Assembly CompileCSharpCode(SyntaxTree syntaxTree, IEnumerable<Assembly> assemblies)
         {
             var sw = new Stopwatch();
             sw.Start();
@@ -63,7 +63,7 @@ namespace HttpProxyGenerator
             }
         }
 
-        private static IEnumerable<MetadataReference> GetAssemblyReferences(List<Assembly> assemblies)
+        private static IEnumerable<MetadataReference> GetAssemblyReferences(IEnumerable<Assembly> assemblies)
         {
             var coreDir = Path.GetDirectoryName(typeof(object).GetTypeInfo().Assembly.Location);
             return Assembly.GetExecutingAssembly().GetReferencedAssemblies()

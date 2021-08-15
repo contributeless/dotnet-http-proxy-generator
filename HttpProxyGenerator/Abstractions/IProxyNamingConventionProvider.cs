@@ -8,7 +8,7 @@ namespace HttpProxyGenerator.Abstractions
 {
     public interface IProxyNamingConventionProvider
     {
-        string GetGeneratedTypesNamespace();
+        string GetControllerNamespace(Type interfaceType);
 
         string GetGeneratedControllerName(Type interfaceType);
 
@@ -19,5 +19,9 @@ namespace HttpProxyGenerator.Abstractions
         string GetApiMethodModelParameterName(MethodInfo method);
 
         string GetParameterModelTypeName(MethodInfo method);
+
+        string GetControllerRoute(Type targetInterface);
+
+        string GetEndpointRoute(MethodInfo method);
     }
 }

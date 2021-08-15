@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -17,12 +18,12 @@ namespace HttpProxyGenerator.Tests
             options.RegisterInterfaceToExpose<IInterfaceToGenerate>();
             var generator = new ControllerGenerator(options);
 
-            var (result, assemblies) = generator.Generate();
+            var result= generator.Generate();
             Console.WriteLine(result);
             
             var compiler = new InMemoryCompiler();
             
-            var assembly = compiler.CompileCSharpCode(result, assemblies);
+            var assembly = compiler.CompileCSharpCode(result, new List<Assembly>());
             var types = assembly.GetExportedTypes().Select(x => x.FullName);
             Console.WriteLine(string.Join(',', types));
         }
