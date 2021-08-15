@@ -18,10 +18,12 @@ namespace HttpProxyGenerator.Abstractions
 
         string GetApiMethodModelParameterName(MethodInfo method);
 
-        string GetParameterModelTypeName(Type interfaceType, MethodInfo method);
+        string GetParameterModelTypeName(Type interfaceType, MethodInfo method, string uniqueEndpointContractName);
 
         string GetControllerRoute(Type targetInterface);
 
-        string GetEndpointRoute(MethodInfo method);
+        string GetEndpointRoute(MethodInfo method, string uniqueEndpointContractName);
+
+        IDictionary<string, MethodInfo> GetUniqueEndpointContractNames(IEnumerable<MethodInfo> methods);
     }
 }

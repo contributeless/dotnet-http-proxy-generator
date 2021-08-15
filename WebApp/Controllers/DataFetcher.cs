@@ -26,7 +26,6 @@ namespace WebApp.Controllers
             return Task.CompletedTask;
         }
 
-
         public Task<SampleData> GetGenericData()
         {
             return Task.FromResult(new SampleData()
@@ -39,6 +38,16 @@ namespace WebApp.Controllers
         public Task<string> SendGenericData(SampleData data)
         {
             return Task.FromResult($"Passed {data.Info1} {data.Info2}");
+        }
+
+        public Task<string> GetOverloadedAsync(string data)
+        {
+            return Task.FromResult($"Overloaded method 1; data: {data}");
+        }
+
+        public Task<string> GetOverloadedAsync(int data)
+        {
+            return Task.FromResult($"Overloaded method 2; data: {data}");
         }
     }
 }

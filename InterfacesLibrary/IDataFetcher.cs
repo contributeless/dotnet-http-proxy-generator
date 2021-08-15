@@ -21,5 +21,9 @@ namespace InterfacesLibrary
         Task<string> GetDataWithoutParametersAsync();
 
         Task SendWithoutResultAsync(string data);
+
+        Task<string> GetOverloadedAsync(string data);
+
+        Task<string> GetOverloadedAsync(int data);
     }
 }

@@ -45,6 +45,7 @@ namespace HttpProxyGenerator
         private MemberDeclarationSyntax CreateControllerClass(Type targetInterface)
         {
             var methods = _options.ProxyContractProvider.GetMethodsToExpose(targetInterface).ToArray();
+            var uniqueApiContracts = _options.NamingConventionProvider.GetUniqueEndpointContractNames(methods);
 
             return ClassDeclaration(Identifier(_options.NamingConventionProvider.GetGeneratedControllerName(targetInterface)))
                 .AddModifiers(Token(SyntaxKind.PublicKeyword))
@@ -54,8 +55,8 @@ namespace HttpProxyGenerator
                     .Add(GenerateRouteAttribute(_options.NamingConventionProvider.GetControllerRoute(targetInterface)))))
                 .AddMembers(CreateServiceField(targetInterface))
                 .AddMembers(CreateControllerConstructor(targetInterface))
-                .AddMembers(methods.Select(x => CreateApiEndpointMethod(x, targetInterface)).ToArray())
-                .AddMembers(methods.Select(x => CreateParameterClassWrapper(x, targetInterface)).Where(x => x != null).ToArray())
+                .AddMembers(uniqueApiContracts.Select(x => CreateApiEndpointMethod(x.Key, x.Value, targetInterface)).ToArray())
+                .AddMembers(uniqueApiContracts.Select(x => CreateParameterClassWrapper(x.Key, x.Value, targetInterface)).Where(x => x != null).ToArray())
                 ;
         }
 
@@ -99,7 +100,7 @@ namespace HttpProxyGenerator
             );
         }
 
-        private MemberDeclarationSyntax CreateApiEndpointMethod(MethodInfo method, Type interfaceType)
+        private MemberDeclarationSyntax CreateApiEndpointMethod(string endpointContractName, MethodInfo method, Type interfaceType)
         {
             const string resultVariableName = "result";
             string modelParameterName = _options.NamingConventionProvider.GetApiMethodModelParameterName(method);
@@ -107,7 +108,7 @@ namespace HttpProxyGenerator
             var attributeList = new SyntaxList<AttributeListSyntax>(AttributeList(SeparatedList<AttributeSyntax>()
                 .Add(GenerateAttribute<HttpPostAttribute>())
                 .Add(GenerateProducesResponseTypeAttribute(method.ReturnType))
-                .Add(GenerateRouteAttribute(_options.NamingConventionProvider.GetEndpointRoute(method)))
+                .Add(GenerateRouteAttribute(_options.NamingConventionProvider.GetEndpointRoute(method, endpointContractName)))
             ));
 
             var keywords = new SyntaxTokenList(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.AsyncKeyword));
@@ -117,9 +118,8 @@ namespace HttpProxyGenerator
             var parameters = method.GetParameters();
 
             var endpointParameter = parameters.Any() 
-                ? Parameter(default, default, ParseTypeName(_options.NamingConventionProvider.GetParameterModelTypeName(interfaceType, method)), ParseToken(modelParameterName), default)
+                ? Parameter(default, default, ParseTypeName(_options.NamingConventionProvider.GetParameterModelTypeName(interfaceType, method, endpointContractName)), ParseToken(modelParameterName), default)
                 : null;
-
 
             var bodyStatements = new List<StatementSyntax>();
 
@@ -186,7 +186,7 @@ namespace HttpProxyGenerator
 
         #region DataClassesGeneration
 
-        private MemberDeclarationSyntax CreateParameterClassWrapper(MethodInfo method, Type interfaceType)
+        private MemberDeclarationSyntax CreateParameterClassWrapper(string endpointContractName, MethodInfo method, Type interfaceType)
         {
             var methodParameters = method.GetParameters();
             if (methodParameters.Length == 0)
@@ -194,7 +194,7 @@ namespace HttpProxyGenerator
                 return null;
             }
 
-            return ClassDeclaration(Identifier(_options.NamingConventionProvider.GetParameterModelTypeName(interfaceType, method)))
+            return ClassDeclaration(Identifier(_options.NamingConventionProvider.GetParameterModelTypeName(interfaceType, method, endpointContractName)))
                     .AddModifiers(Token(SyntaxKind.PublicKeyword))
                     .AddMembers(methodParameters.Select(CreatePropertyByParameter).ToArray())
                 ;

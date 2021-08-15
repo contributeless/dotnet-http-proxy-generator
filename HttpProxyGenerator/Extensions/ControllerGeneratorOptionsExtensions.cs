@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using HttpProxyGenerator.Abstractions;
 
@@ -57,20 +59,40 @@ namespace HttpProxyGenerator.Extensions
         {
             foreach (var type in options.InterfacesToExpose)
             {
-                EnsureAllEndpointsAsync(options, type);
+                var methods = options.ProxyContractProvider.GetMethodsToExpose(type);
+
+                foreach (var methodInfo in methods)
+                {
+                    EnsureAllEndpointsAsync(methodInfo, type);
+                    EnsureAllEndpointsNonGeneric(methodInfo, type);
+                    EnsureAllEndpointsIsNotSpecial(methodInfo, type);
+                }
             }
         }
 
-        private static void EnsureAllEndpointsAsync(ControllerGeneratorOptions options, Type type)
+        private static void EnsureAllEndpointsAsync(MethodInfo method, Type type)
         {
-            var methods = options.ProxyContractProvider.GetMethodsToExpose(type);
-            foreach (var methodInfo in methods)
+            if (!typeof(Task).IsAssignableFrom(method.ReturnType))
             {
-                if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType))
-                {
-                    throw new ArgumentException(
-                        $"Method '{methodInfo.Name}' in '{type.Name}' interface should return '{nameof(Task)}' or '{nameof(Task)}<TData>'");
-                }
+                throw new ArgumentException(
+                    $"Method '{method.Name}' in '{type.Name}' interface should return '{nameof(Task)}' or '{nameof(Task)}<TData>'");
+            }
+        }
+
+        private static void EnsureAllEndpointsNonGeneric(MethodInfo method, Type type)
+        {
+            if (method.IsGenericMethod)
+            {
+                throw new ArgumentException(
+                    $"Method '{method.Name}' in '{type.Name}' interface should not be generic");
+            }
+        }
+        private static void EnsureAllEndpointsIsNotSpecial(MethodInfo method, Type type)
+        {
+            if (method.IsSpecialName)
+            {
+                throw new ArgumentException(
+                    $"Method '{method.Name}' in '{type.Name}' interface should not be special");
             }
         }
     }

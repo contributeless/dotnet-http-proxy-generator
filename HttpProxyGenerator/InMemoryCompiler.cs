@@ -47,7 +47,7 @@ namespace HttpProxyGenerator
                     var errorNumber = firstError.Id;
                     var errorDescription = firstError.GetMessage();
                     var firstErrorMessage = $"{errorNumber}: {errorDescription};";
-                    throw new Exception($"Compilation failed, first error is: {firstErrorMessage}");
+                    throw new InvalidOperationException($"Compilation failed, first error is: {firstErrorMessage}");
                 }
             }
         }

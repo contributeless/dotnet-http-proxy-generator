@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HttpProxyGenerator.Extensions;
@@ -7,6 +8,8 @@ namespace HttpProxyGenerator.Abstractions
 {
     public class DefaultProxyNamingConventionProvider: IProxyNamingConventionProvider
     {
+        private const string AsyncPostfix = "Async";
+
         public string GetControllerNamespace(Type interfaceType)
         {
             return "Test.Controllers.CodeGen";
@@ -37,9 +40,9 @@ namespace HttpProxyGenerator.Abstractions
             return "model";
         }
 
-        public string GetParameterModelTypeName(Type interfaceType, MethodInfo method)
+        public string GetParameterModelTypeName(Type interfaceType, MethodInfo method, string uniqueEndpointContractName)
         {
-            return $"{GetContractBaseName(interfaceType)}{GetApiEndpointWithoutAsyncPostfix(method.Name)}ParameterModel";
+            return $"{GetContractBaseName(interfaceType)}{GetApiEndpointWithoutAsyncPostfix(uniqueEndpointContractName)}ParameterModel";
         }
 
         public string GetControllerRoute(Type targetInterface)
@@ -48,17 +51,46 @@ namespace HttpProxyGenerator.Abstractions
             return $"api/{name.ToKebabCase()}";
         }
 
-        public string GetEndpointRoute(MethodInfo method)
+        public string GetEndpointRoute(MethodInfo method, string uniqueEndpointContractName)
         {
-            return GetApiEndpointWithoutAsyncPostfix(method.Name).ToKebabCase();
+            return GetApiEndpointWithoutAsyncPostfix(uniqueEndpointContractName).ToKebabCase();
+        }
+
+        public IDictionary<string, MethodInfo> GetUniqueEndpointContractNames(IEnumerable<MethodInfo> methods)
+        {
+            var methodsGroupedByName = methods.GroupBy(x => x.Name).ToArray();
+
+            var singularMethods = methodsGroupedByName.Where(x => x.Count() == 1).SelectMany(x => x);
+
+            var result = singularMethods.ToDictionary(x => x.Name, x => x);
+
+            var overloadedMethodGroups = methodsGroupedByName.Where(x => x.Count() > 1)
+                .ToArray();
+
+            foreach (var overloadedMethodGroup in overloadedMethodGroups)
+            {
+                var overloadedMethods = overloadedMethodGroup.ToArray();
+                for (var i = 0; i < overloadedMethods.Length; i++)
+                {
+                    var method = overloadedMethods[i];
+
+                    var withoutPostfix = GetApiEndpointWithoutAsyncPostfix(method.Name);
+
+                    result.Add(
+                        withoutPostfix.Length != method.Name.Length
+                            ? $"{withoutPostfix}{i}{AsyncPostfix}"
+                            : $"{method.Name}{i}", method);
+                }
+            }
+
+            return result;
         }
 
         private string GetApiEndpointWithoutAsyncPostfix(string methodName)
         {
-            const string asyncPostfix = "Async";
-            if (methodName.EndsWith(asyncPostfix))
+            if (methodName.EndsWith(AsyncPostfix))
             {
-                return methodName[..^asyncPostfix.Length];
+                return methodName[..^AsyncPostfix.Length];
             }
 
             return methodName;
