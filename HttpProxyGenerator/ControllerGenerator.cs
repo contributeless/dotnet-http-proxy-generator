@@ -240,7 +240,8 @@ namespace HttpProxyGenerator
 
         private AttributeSyntax GenerateAttribute<TAttribute>(params ExpressionSyntax[] parameters)
         {
-            var attributeName = ParseName(typeof(TAttribute).GetFullTypeName());
+            var attributeType = typeof(TAttribute);
+            var attributeName = ParseName(attributeType.FullName ?? attributeType.Name);
 
             var attributeParametersList = SeparatedList<AttributeArgumentSyntax>();
 

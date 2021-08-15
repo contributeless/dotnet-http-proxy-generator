@@ -24,13 +24,16 @@ namespace WebApp
         {
             services.AddControllers()
                 .AddNewtonsoftJson()
-                .AddControllersAsServices()
                 .RegisterHttpProxyEndpoints(options =>
                 {
                     options.RegisterInterfaceToExpose<IDataFetcher>();
+                    options.RegisterInterfaceToExpose<IGenericDataFetcher<SampleData>>();
+                    options.RegisterInterfaceToExpose<IGenericDataFetcher<SampleData2>>();
                 });
 
             services.AddSingleton<IDataFetcher, DataFetcher>();
+            services.AddSingleton<IGenericDataFetcher<SampleData>, GenericDataFetcher>();
+            services.AddSingleton<IGenericDataFetcher<SampleData2>, GenericDataFetcher2>();
 
             services.AddSwaggerGen(c =>
             {

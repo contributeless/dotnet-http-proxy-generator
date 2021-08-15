@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace InterfacesLibrary
 {
@@ -22,11 +21,5 @@ namespace InterfacesLibrary
         Task<string> GetDataWithoutParametersAsync();
 
         Task SendWithoutResultAsync(string data);
-    }
-
-    public class SampleData
-    {
-        public string Info1 { get; set; }
-        public DateTime Info2 { get; set; }
     }
 }

@@ -26,6 +26,7 @@ namespace WebApp.Controllers
             return Task.CompletedTask;
         }
 
+
         public Task<SampleData> GetGenericData()
         {
             return Task.FromResult(new SampleData()
@@ -34,7 +35,7 @@ namespace WebApp.Controllers
                 Info2 = DateTime.UtcNow
             });
         }
-
+        
         public Task<string> SendGenericData(SampleData data)
         {
             return Task.FromResult($"Passed {data.Info1} {data.Info2}");

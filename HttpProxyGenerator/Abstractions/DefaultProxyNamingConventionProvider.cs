@@ -18,7 +18,7 @@ namespace HttpProxyGenerator.Abstractions
             {
                 throw new ArgumentNullException(nameof(interfaceType));
             }
-            var name = GetInterfaceNameWithoutLeadingI(interfaceType.Name);
+            var name = GetContractBaseName(interfaceType);
             return $"{name}Controller";
         }
 
@@ -39,12 +39,12 @@ namespace HttpProxyGenerator.Abstractions
 
         public string GetParameterModelTypeName(Type interfaceType, MethodInfo method)
         {
-            return $"{GetInterfaceNameWithoutLeadingI(interfaceType.Name)}{GetApiEndpointWithoutAsyncPostfix(method.Name)}ParameterModel";
+            return $"{GetContractBaseName(interfaceType)}{GetApiEndpointWithoutAsyncPostfix(method.Name)}ParameterModel";
         }
 
         public string GetControllerRoute(Type targetInterface)
         {
-            var name = GetInterfaceNameWithoutLeadingI(targetInterface.Name);
+            var name = GetContractBaseName(targetInterface);
             return $"api/{name.ToKebabCase()}";
         }
 
@@ -62,6 +62,14 @@ namespace HttpProxyGenerator.Abstractions
             }
 
             return methodName;
+        }
+
+        private string GetContractBaseName(Type interfaceType)
+        {
+            var urlFriendly = interfaceType.GetUrlFriendlyName();
+            var trimmedInterfaceName = GetInterfaceNameWithoutLeadingI(urlFriendly);
+
+            return trimmedInterfaceName;
         }
 
         private string GetInterfaceNameWithoutLeadingI(string interfaceName)

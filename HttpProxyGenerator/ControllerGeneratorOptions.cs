@@ -7,37 +7,16 @@ namespace HttpProxyGenerator
     public class ControllerGeneratorOptions
     {
         internal IList<Type> InterfacesToExpose { get; }
-        internal IProxyNamingConventionProvider NamingConventionProvider { get; }
-        internal IProxyContractProvider ProxyContractProvider { get; }
+
+        internal IProxyNamingConventionProvider NamingConventionProvider { get; set; }
+
+        internal IProxyContractProvider ProxyContractProvider { get; set; }
 
         public ControllerGeneratorOptions()
         {
             InterfacesToExpose = new List<Type>();
             NamingConventionProvider = new DefaultProxyNamingConventionProvider();
             ProxyContractProvider = new DefaultProxyContractProvider();
-        }
-
-        public void RegisterInterfaceToExpose<TInterface>()
-        {
-            var type = typeof(TInterface);
-
-            ValidateType(type);
-            ValidateInterfaceMethods(type);
-
-            InterfacesToExpose.Add(type);
-        }
-
-        private void ValidateType(Type type)
-        {
-            if (!type.IsInterface)
-            {
-                throw new ArgumentException($"{type.Name} is not interface");
-            }
-        }
-
-        private void ValidateInterfaceMethods(Type type)
-        {
-            //TODO
         }
     }
 }

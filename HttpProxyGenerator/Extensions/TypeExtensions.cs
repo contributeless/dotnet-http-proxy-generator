@@ -8,16 +8,6 @@ namespace HttpProxyGenerator.Extensions
 {
     internal static class TypeExtensions
     {
-        public static string GetFullTypeName(this Type type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return type.FullName ?? type.Name;
-        }
-
         public static MethodInfo[] GetInterfaceMethods(this Type type)
         {
             if (type is null)
@@ -59,6 +49,30 @@ namespace HttpProxyGenerator.Extensions
             }
             else
                 return SyntaxFactory.ParseTypeName(name);
+        }
+
+        public static string GetUrlFriendlyName(this Type type)
+        {
+            string friendlyName = type.Name;
+            if (type.IsGenericType)
+            {
+                int backtick = friendlyName.IndexOf('`');
+                if (backtick > 0)
+                {
+                    friendlyName = friendlyName.Remove(backtick);
+                }
+                foreach (var typeParam in type.GetGenericArguments())
+                {
+                    friendlyName += typeParam.GetUrlFriendlyName();
+                }
+            }
+
+            if (type.IsArray)
+            {
+                return type.GetElementType().GetUrlFriendlyName() + "Array";
+            }
+
+            return friendlyName;
         }
     }
 }

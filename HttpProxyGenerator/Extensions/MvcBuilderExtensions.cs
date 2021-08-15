@@ -21,6 +21,8 @@ namespace HttpProxyGenerator.Extensions
 
             configure(options);
 
+            options.PostConfigureValidate();
+
             var controllerGenerator = new ControllerGenerator(options);
 
             var syntaxTree = controllerGenerator.Generate();

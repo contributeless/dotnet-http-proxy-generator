@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -14,6 +13,7 @@ namespace HttpProxyGenerator
     {
         public Assembly CompileCSharpCode(SyntaxTree syntaxTree, IEnumerable<Assembly> assemblies)
         {
+            var str = syntaxTree.ToString();
             string assemblyName = Guid.NewGuid().ToString();
             var references = GetAssemblyReferences(assemblies);
 
