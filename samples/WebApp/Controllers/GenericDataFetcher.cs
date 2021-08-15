@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using InterfacesLibrary;
+using InterfacesLibrary.AnotherNamespace;
 
 namespace WebApp.Controllers
 {

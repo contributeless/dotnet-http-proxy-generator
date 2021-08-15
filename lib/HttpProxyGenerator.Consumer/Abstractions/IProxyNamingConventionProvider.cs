@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace HttpProxyGenerator.Consumer.Abstractions
 {
-    public interface IProxyNamingConventionProvider
+    public interface IProxyNamingConventionProvider: Common.Abstractions.IProxyNamingConventionProvider
     {
         string GetControllerNamespace(Type interfaceType);
 
@@ -17,11 +16,5 @@ namespace HttpProxyGenerator.Consumer.Abstractions
         string GetApiMethodModelParameterName(MethodInfo method);
 
         string GetParameterModelTypeName(Type interfaceType, MethodInfo method, string uniqueEndpointContractName);
-
-        string GetControllerRoute(Type targetInterface);
-
-        string GetEndpointRoute(MethodInfo method, string uniqueEndpointContractName);
-
-        IDictionary<string, MethodInfo> GetUniqueEndpointContractNames(IEnumerable<MethodInfo> methods);
     }
 }

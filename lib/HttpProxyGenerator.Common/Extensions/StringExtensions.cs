@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace HttpProxyGenerator.Consumer.Extensions
+namespace HttpProxyGenerator.Common.Extensions
 {
     internal static class StringExtensions
     {

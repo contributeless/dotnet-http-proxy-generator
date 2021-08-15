@@ -9,4 +9,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.11.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\HttpProxyGenerator.Common\HttpProxyGenerator.Common.csproj" />
+  </ItemGroup>
+
 </Project>

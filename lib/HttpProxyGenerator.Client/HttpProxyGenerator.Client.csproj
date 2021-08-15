@@ -10,8 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Extensions\" />
-    <Folder Include="Abstractions\" />
+    <ProjectReference Include="..\HttpProxyGenerator.Common\HttpProxyGenerator.Common.csproj" />
   </ItemGroup>
 
 </Project>

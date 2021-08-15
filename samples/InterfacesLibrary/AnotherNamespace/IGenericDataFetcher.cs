@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace InterfacesLibrary
+namespace InterfacesLibrary.AnotherNamespace
 {
     public interface IGenericDataFetcher<TCustom>
     {
