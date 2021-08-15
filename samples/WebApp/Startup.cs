@@ -1,10 +1,10 @@
+using HttpProxyGenerator.Consumer.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using HttpProxyGenerator.Extensions;
 using InterfacesLibrary;
 using WebApp.Controllers;
 

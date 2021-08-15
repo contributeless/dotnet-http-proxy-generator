@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace HttpProxyGenerator.Abstractions
+namespace HttpProxyGenerator.Consumer.Abstractions
 {
     public interface IProxyNamingConventionProvider
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using HttpProxyGenerator.Abstractions;
+using HttpProxyGenerator.Consumer.Abstractions;
 
-namespace HttpProxyGenerator
+namespace HttpProxyGenerator.Consumer
 {
     public class ControllerGeneratorOptions
     {

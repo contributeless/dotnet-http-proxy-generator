@@ -25,5 +25,11 @@ namespace InterfacesLibrary
         Task<string> GetOverloadedAsync(string data);
 
         Task<string> GetOverloadedAsync(int data);
+
+        Task<string> SendComplexGenericData(SampleGenericData<SampleData> data);
+
+        Task<string> SendComplexGenericData(SampleGenericData<SampleGenericData<SampleData>> data);
+
+        Task<SampleGenericData<SampleData>> GetComplexGenericData();
     }
 }

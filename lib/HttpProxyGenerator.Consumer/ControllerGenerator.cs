@@ -4,14 +4,14 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-using HttpProxyGenerator.Extensions;
+using HttpProxyGenerator.Consumer.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace HttpProxyGenerator
+namespace HttpProxyGenerator.Consumer
 {
     public class ControllerGenerator
     {

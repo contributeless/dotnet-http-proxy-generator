@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using Newtonsoft.Json;
 
-namespace HttpProxyGenerator
+namespace HttpProxyGenerator.Client
 {
     public class HttpClientProxyGenerator
     {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HttpProxyGenerator.Extensions;
+using HttpProxyGenerator.Consumer.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HttpProxyGenerator.Abstractions
+namespace HttpProxyGenerator.Consumer.Abstractions
 {
     public class DefaultProxyContractProvider : IProxyContractProvider
     {

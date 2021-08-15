@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using HttpProxyGenerator.Abstractions;
+using HttpProxyGenerator.Consumer.Abstractions;
 
-namespace HttpProxyGenerator.Extensions
+namespace HttpProxyGenerator.Consumer.Extensions
 {
     public static class ControllerGeneratorOptionsExtensions
     {

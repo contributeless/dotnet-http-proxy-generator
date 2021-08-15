@@ -4,7 +4,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace HttpProxyGenerator.Extensions
+namespace HttpProxyGenerator.Consumer.Extensions
 {
     internal static class TypeExtensions
     {

@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HttpProxyGenerator\HttpProxyGenerator.csproj" />
+    <ProjectReference Include="..\..\lib\HttpProxyGenerator.Client\HttpProxyGenerator.Client.csproj" />
     <ProjectReference Include="..\InterfacesLibrary\InterfacesLibrary.csproj" />
   </ItemGroup>
 

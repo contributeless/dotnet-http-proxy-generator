@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
-namespace HttpProxyGenerator.Abstractions
+namespace HttpProxyGenerator.Consumer.Abstractions
 {
     public interface IProxyContractProvider
     {

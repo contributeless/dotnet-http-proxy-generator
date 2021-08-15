@@ -4,7 +4,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HttpProxyGenerator.Extensions
+namespace HttpProxyGenerator.Consumer.Extensions
 {
     public static class MvcBuilderExtensions
     {

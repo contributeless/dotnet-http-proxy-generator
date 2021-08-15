@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 
-namespace HttpProxyGenerator
+namespace HttpProxyGenerator.Consumer
 {
     public class InMemoryCompiler
     {

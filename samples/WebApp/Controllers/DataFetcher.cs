@@ -49,5 +49,28 @@ namespace WebApp.Controllers
         {
             return Task.FromResult($"Overloaded method 2; data: {data}");
         }
+
+        public Task<string> SendComplexGenericData(SampleGenericData<SampleData> data)
+        {
+            return Task.FromResult($"Complex info received {data.SampleComplexInfo.Info1}");
+        }
+
+        public Task<string> SendComplexGenericData(SampleGenericData<SampleGenericData<SampleData>> data)
+        {
+            return Task.FromResult($"Complex info received {data.SampleInfo}");
+        }
+
+        public Task<SampleGenericData<SampleData>> GetComplexGenericData()
+        {
+            return Task.FromResult(new SampleGenericData<SampleData>()
+            {
+                SampleComplexInfo = new SampleData()
+                {
+                    Info1 = "test",
+                    Info2 = DateTime.UtcNow
+                },
+                SampleInfo = "test2"
+            });
+        }
     }
 }

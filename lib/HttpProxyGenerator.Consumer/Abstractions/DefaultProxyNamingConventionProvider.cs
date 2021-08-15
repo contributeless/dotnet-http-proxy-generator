@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HttpProxyGenerator.Extensions;
+using HttpProxyGenerator.Consumer.Extensions;
 
-namespace HttpProxyGenerator.Abstractions
+namespace HttpProxyGenerator.Consumer.Abstractions
 {
     public class DefaultProxyNamingConventionProvider: IProxyNamingConventionProvider
     {
