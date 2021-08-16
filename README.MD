@@ -3,6 +3,29 @@
 Usage example:
 
 1. Define the Interface that will be used in both projects
+
+```csharp
+
+    public interface IDataFetcher
+    {
+        Task<string> GetSimpleDataAsync(string test1, int test2);
+
+        Task<string> GetDataWithoutParametersAsync();
+
+        Task SendWithoutResultAsync(string data);
+
+        Task<string> GetOverloadedAsync(string data);
+
+        Task<string> GetOverloadedAsync(int data);
+
+        Task<string> SendComplexGenericData(SampleGenericData<SampleData> data);
+
+        Task<string> SendComplexGenericData(SampleGenericData<SampleGenericData<SampleData>> data);
+
+        Task<SampleGenericData<SampleData>> GetComplexGenericData();
+    }
+
+```
 2. Register proxy controllers in the Consumer app
 
 ```csharp
